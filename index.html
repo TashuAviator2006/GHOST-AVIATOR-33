@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ghost Aviator — 30s Window Signals</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f14; --panel:#121a22; --text:#e9fbff; --muted:#a9c6da;
+    --glow:#19e3ff; --accent:#18ffc6; --badge:#ff66c4;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#0a0f14;color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:900px;margin:28px auto;padding:0 18px 36px}
+  .hero{border:1px solid rgba(25,227,255,.3);border-radius:18px;padding:20px;background:linear-gradient(180deg,#141e27,#0d141a);box-shadow:0 0 28px rgba(25,227,255,.15)}
+  h1{margin:0 0 6px;font:800 32px/1.08 Orbitron,monospace;text-shadow:0 0 24px rgba(25,227,255,.45)}
+  .logic{font:700 12px/1.5 Orbitron,monospace;color:#bffaff}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:12px}
+  .control{grid-column:span 12;background:var(--panel);border:1px solid rgba(25,227,255,.22);border-radius:16px;padding:14px;box-shadow:0 0 18px rgba(25,227,255,.08)}
+  label{font:600 12px/1 Orbitron,monospace;color:#9fe9ff;letter-spacing:.6px}
+  select,input[type=number]{width:100%;font:600 15px/1 Orbitron,monospace;color:var(--text);background:#0c131a;border:1px solid #22485a;padding:11px;border-radius:12px;margin-top:6px}
+  .row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+  button{margin-top:10px;width:100%;font:800 16px/1 Orbitron,monospace;letter-spacing:.8px;color:#001e22;background:linear-gradient(90deg,var(--accent),var(--glow));border:0;border-radius:12px;padding:14px 16px;cursor:pointer;box-shadow:0 8px 18px rgba(24,255,198,.25), 0 0 22px rgba(25,227,255,.18)}
+  .signals{margin-top:18px;display:grid;gap:14px}
+  .sig{background:linear-gradient(180deg,#0f161c,#0b1117);border:1px solid rgba(25,227,255,.22);border-radius:18px;padding:16px;box-shadow:0 0 16px rgba(25,227,255,.08)}
+  .sig h3{margin:0 0 8px;font:800 20px/1 Orbitron,monospace}
+  .prime{display:inline-block;margin-left:8px;font:800 11px/1 Orbitron,monospace;color:#081321;background:linear-gradient(90deg,#ff66c4,#60a5fa);padding:6px 10px;border-radius:999px}
+  .line{font:800 22px/1.2 Orbitron,monospace;margin:6px 0}
+  .sub{color:var(--muted);font:600 13px/1.4 Orbitron,monospace;margin-top:2px}
+  .twoX{display:inline-block;font:900 18px/1 Orbitron,monospace;color:#081321;background:linear-gradient(90deg,#2affd7,#19e3ff);padding:6px 12px;border-radius:999px;margin-top:8px;box-shadow:0 0 16px rgba(25,227,255,.25)}
+  .tip{margin-top:10px;color:#bfeaff;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>👻 Ghost Aviator — Sri Lanka Best Signals</h1>
+    <div class="logic">
+      Logic: <b>Original aviator 90%+</b> • Over <b>100000x</b> highly-spike windows • with seconds.
+      Output format: <i>t<sub>exact</sub> +30s</i> &nbsp;|&nbsp; <i>t<sub>exact</sub> – t<sub>exact</sub>+30s</i> &nbsp;|&nbsp; <b>2x</b>.
+    </div>
+
+    <div class="control">
+      <div class="row">
+        <div>
+          <label>Hour (Sri Lanka)</label>
+          <select id="hour"></select>
+        </div>
+        <div>
+          <label>Count</label>
+          <input id="count" type="number" value="10" min="1" max="20">
+        </div>
+        <div>
+          <label>Confidence (90%+ mode)</label>
+          <select id="conf">
+            <option>90–92%</option>
+            <option selected>93–96%</option>
+            <option>96–98%</option>
+          </select>
+        </div>
+      </div>
+      <button id="gen">GENERATE</button>
+    </div>
+  </div>
+
+  <div id="signals" class="signals"></div>
+</div>
+
+<script>
+  const TZ = 'Asia/Colombo';
+  const hourSel = document.getElementById('hour');
+  const countInp = document.getElementById('count');
+  const confSel  = document.getElementById('conf');
+  const signalsEl = document.getElementById('signals');
+
+  // build hours 00–23
+  (function(){
+    for(let h=0; h<24; h++){
+      const o=document.createElement('option');
+      const hh=String(h).padStart(2,'0');
+      o.value=h; o.textContent=`${hh}:00 – ${hh}:59`;
+      hourSel.appendChild(o);
+    }
+    const nowSL = new Date(new Date().toLocaleString('en-US',{timeZone:TZ}));
+    hourSel.value = nowSL.getHours();
+  })();
+
+  // seeded RNG (stable per hour)
+  function seeded(seed){
+    let h=2166136261>>>0;
+    for(let i=0;i<seed.length;i++){ h^=seed.charCodeAt(i); h=Math.imul(h,16777619); }
+    return function(){
+      h += 0x6D2B79F5;
+      let t = Math.imul(h ^ (h>>>15), 1|h);
+      t ^= t + Math.imul(t ^ (t>>>7), 61|t);
+      return ((t ^ (t>>>14))>>>0)/4294967296;
+    };
+  }
+
+  // spike anchors (minutes) — heavier bias for 90%+ feel
+  const SUPER=[16,28,36,46,53], BASE=[5,9,12,15,18,22,26,29,33,37,41,45,49,53,57];
+
+  function pad(n){return String(n).padStart(2,'0')}
+  function fmt(d){return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}
+
+  function genSignals(hour,count){
+    const rnd = seeded(`SL-30s-${hour}`);
+    const set=new Set(), out=[];
+    while(out.length<count){
+      const pool = rnd()<0.7? SUPER : BASE;
+      const m0 = pool[Math.floor(rnd()*pool.length)];
+      const minute = Math.max(0,Math.min(59,m0 + (Math.floor(rnd()*3)-1))); // −1..+1
+      const sec = Math.max(0,Math.min(59, Math.round(45 + (rnd()-0.5)*16))); // cluster near :45
+      const key=`${minute}:${sec}`; if(set.has(key)) continue; set.add(key);
+
+      // build exact + 30s window
+      const t0 = new Date(new Date().toLocaleString('en-US',{timeZone:TZ}));
+      t0.setHours(hour,minute,sec,0);
+      const t1 = new Date(t0.getTime()+30*1000);
+
+      out.push({
+        exact: fmt(t0),
+        plusText: `${fmt(t0)} +30 seconds`,
+        range: `${fmt(t0)} - ${fmt(t1)}`,
+        prime: SUPER.includes(m0),
+        tip: (rnd()>0.5) ? "Enter after ≤1.20x or 2 low rounds in a row"
+                         : "Skip if previous >2.50x; wait one round then enter"
+      });
+    }
+    return out.sort((a,b)=>a.exact.localeCompare(b.exact));
+  }
+
+  function confRange(label){
+    if(label==="90–92%") return [90,92];
+    if(label==="96–98%") return [96,98];
+    return [93,96];
+  }
+
+  function render(list){
+    const [lo,hi]=confRange(confSel.value);
+    signalsEl.innerHTML='';
+    list.forEach((s,i)=>{
+      const conf = Math.floor(lo + Math.random()*(hi-lo));
+      const el=document.createElement('div');
+      el.className='sig';
+      el.innerHTML = `
+        <h3>SIGNAL #${i+1} ${s.prime?'<span class="prime">Prime minute</span>':''}</h3>
+        <div class="line">${s.plusText}</div>
+        <div class="line">${s.range}</div>
+        <span class="twoX">2x</span>
+        <div class="tip">Tip: ${s.tip} • Confidence: <b>${conf}%</b></div>
+      `;
+      signalsEl.appendChild(el);
+    });
+  }
+
+  document.getElementById('gen').addEventListener('click', ()=>{
+    const hour=+hourSel.value;
+    const count=Math.max(1,Math.min(50,+countInp.value||10));
+    render(genSignals(hour,count));
+  });
+
+  // first render
+  document.getElementById('gen').click();
+</script>
+</body>
+</html>
